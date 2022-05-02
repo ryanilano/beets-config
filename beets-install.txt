@@ -1,0 +1,11 @@
+pip install inline discogs beatport ftintitle edit convert zero beets-bandcamp requests requests_oauthlib extrafiles badfiles extrafiles
+
+
+Discogs Client
+https://beets.readthedocs.io/en/stable/plugins/discogs.html
+I love how specific the media queries are on Discogs, you can use this to automatically search
+
+Extrafiles
+https://github.com/Holzhaus/beets-extrafiles
+A plugin for beets that copies additional files and directories during the import process.
+I use this to copy over anything in a folder that isn't music such as album art, logs, cue files, lineage notes, etc.

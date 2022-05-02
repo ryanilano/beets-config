@@ -1,0 +1,223 @@
+
+directory: /Volumes/red-music/music-library-beets
+library: /Volumes/red-music/.config/beets/beets-library-red.db
+# pluginpath: ~/Library/Python/3.7/lib/python/site-packages
+# log: ~/Desktop/red-hdd.log
+
+import:
+    # move imported files from source to the music directory
+    move: yes
+    quiet_fallback: skip
+    default_action: apply
+
+    resume: ask
+    incremental: yes
+    none_rec_action: ask
+
+# Paths ----------------------------------------------------------------------
+
+# Paths and filenames for music files
+# relative to music directory
+paths:
+    default: $albumartist/%if{$original_year,$original_year,$year} - $album%aunique{}$custom_year [$custom_media_format]/%if{$multidisc,$disc-}$track $title
+    # default: $albumartist/%if{$original_year,$original_year,$year} - $album%aunique{}$custom_year [$custom_media_format]/%if{$multidisc,$disc-}$track $title
+    comp: VA - $album [$year]%aunique{} [$custom_media_format]/%if{$multidisc,$disc-}$track $artist - %title{$title}
+    albumtype:soundtrack: OST - $album [$year]%aunique{} [$custom_media_format]/%if{$multidisc,$disc-}$track $artist - %title{$title}
+    ext: $albumartist/%if{$original_year,$original_year,$year} - $album%aunique{}$custom_year [$custom_media_format]/%if{$multidisc,$disc-}$track $title
+    mutt:1: $albumartist/%if{$original_year,$original_year,$year} - $album%aunique{}$custom_year [$mutt_media_format]/%if{$multidisc,$disc-}$track $title
+    muttcomp:1: VA - $album [$year] [$mutt_media_format]/%if{$multidisc,$disc-}$track $artist - %title{$title}
+    VA:1: VA - $album [$year]%aunique{} [$custom_media_format]/%if{$multidisc,$disc-}$track $artist - %title{$title}
+
+    # ext: $albumpath
+
+# Inline Path Options ----------------------------------------------------------------------
+
+item_fields:
+    multidisc: 1 if disctotal > 1 else 0
+
+    custom_media_format: |
+        result = []
+        if media == 'Digital Media':
+            result += ['WEB']
+        if media == 'File':
+            result += ['WEB']
+        elif media.endswith('inyl'):
+            result += ['VINYL']
+        elif media == 'CDr':
+            result += ['CD']
+        elif media == 'CD':
+            result += [media]
+        result += [format]
+        if bitdepth == 24:
+            result += ['24']
+        return " ".join(result)
+
+    mutt_media_format: |
+        result = []
+        if media == 'Digital Media':
+            result += ['WEB']
+        if media == 'File':
+            result += ['WEB']
+        elif media.endswith('inyl'):
+            result += ['VINYL']
+        elif media == 'CDr':
+            result += ['CD']
+        elif media == 'CD':
+            result += [media]
+        result += [format]
+        return " ".join(result)
+
+    # return a decent release year, avoid original years of 0000
+    custom_year: |
+        result = ''
+        if original_year == 0000:
+            result += ''
+        elif year > original_year:
+            result += str(year) + ''
+        if result != '':
+            return ' (' + result + ')'
+
+
+
+asciifypaths: yes
+
+# replace special characters in generated filenames
+replace:
+    '[\\/]': _
+    '^\.': _
+    '[\x00-\x1f]': ''
+    '[<>:"\?\*\|]': ''
+    '\.$': _
+    '\s+$': ''
+    '^\s+': ''
+    '^-': _
+
+
+
+path_sep_replace: ／
+
+max_filename_length: 155  # unlimited
+
+# General --------------------------------------------------------------------
+
+# use mutliple threads during import
+threaded: yes
+timeout: 5.0
+verbose: no
+
+# use auto-tagging where possible
+# yes/no require confirmation on strong matches
+autotag: yes
+timid: yes
+
+per_disc_numbering: yes
+
+# files matching these patterns are deleted from source after import
+clutter: ["Thumbs.DB", ".DS_Store", "*.m3u", ".pls", "*.m3u8"]
+max_filename_length: 155
+
+# User Interface -------------------------------------------------------------
+
+color: yes
+list_format_item: %upper{$artist} - $album - $track. $title
+list_format_album: %upper{$albumartist} - $album
+time_format: '%Y-%m-%d %H:%M:%S'
+terminal_encoding: utf8
+
+ui:
+    terminal_width: 100
+    length_diff_thresh: 10.0
+
+# Plugins --------------------------------------------------------------------
+
+plugins: inline discogs beatport ftintitle edit convert zero bandcamp copyartifacts badfiles
+
+# convert:
+#     album_art_maxwidth: 600
+
+beatport:
+    source_weight: 0.5
+
+discogs:
+    source_weight: 0.02
+
+ftintitle:
+    auto: yes
+    drop: no
+    format: feat. {0}
+
+# musicbrainz:
+#     host: 192.168.1.234:5000
+#     ratelimit: 100
+
+# embedart:
+#     ifempty: yes
+#     auto: no
+
+lastgenre:
+    auto: yes
+    source: album
+
+# scrub:
+#     auto: yes
+
+zero:
+    fields: original_month original_day month day
+    update_database: true
+
+# fetchart:
+#     auto: yes
+#     maxwidth: 1200
+#     enforce_ratio: 0.5%
+#     sources: filesystem amazon albumart
+#     cover_names: cover front art album folder
+
+edit:
+    itemfields: albumartist artist album media original_year track title year
+    albumfields: albumartist artist album year original_year compilation
+
+# wlg:
+#     auto: yes
+#     force: no
+#     count: 1
+#     separator: ', '
+
+copyartifacts:
+    extensions: .*
+
+# Auto Tagger ----------------------------------------------------------------
+
+match:
+    strong_rec_thresh: 0.02      # match 97% or better for auto import
+    medium_rec_thresh: 0.25
+    rec_gap_thresh: 0.25
+    max_rec:
+        missing_tracks: medium
+        unmatched_tracks: medium
+    distance_weights:
+        source: 2.0
+        artist: 3.0
+        album: 3.0
+        media: 0.5
+        mediums: 0.5
+        year: 1.0
+        country: 0.5
+        label: 0.5
+        catalognum: 0.5
+        albumdisambig: 0.5
+        album_id: 5.0
+        tracks: 2.0
+        missing_tracks: 0.9
+        unmatched_tracks: 0.6
+        track_title: 3.0
+        track_artist: 2.0
+        track_index: 1.0
+        track_length: 2.0
+        track_id: 5.0
+    preferred:
+        countries: []
+        media: ['Digital Media|File', 'CD', '12 Vinyl', 'Vinyl', ]
+        original_year: no
+    ignored: []
+    track_length_grace: 10
+    track_length_max: 30
